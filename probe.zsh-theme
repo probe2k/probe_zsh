@@ -7,7 +7,7 @@ esac
 
 () {
 	local LC_ALL="" LC_CTYPE="en_US.UTF-8"
-	SEGMENT_SEPARATOR='❯'
+	SEGMENT_SEPARATOR=$'\u276f'
 }
 
 prompt_segment() {
@@ -84,30 +84,30 @@ prompt_git() {
 	fi
 }
 
-prompt_bzr() {
-	(( $+commands[bzr] )) || return
-	local dir="$PWD"
-	while [[ ! -d "$dir/.bzr" ]]; do
-		[[ "$dir" = "/" ]] && return
-		dir="${dir:h}"
-	done
+# prompt_bzr() {
+# 	(( $+commands[bzr] )) || return
+# 	local dir="$PWD"
+# 	while [[ ! -d "$dir/.bzr" ]]; do
+# 		[[ "$dir" = "/" ]] && return
+# 		dir="${dir:h}"
+# 	done
 
-	local bzr_status status_mod status_all revision
-	if bzr_status=$(bzr status 2>&1); then
-		status_mod=$(echo -n "$bzr_status" | head -n1 | grep "modified" | wc -m)
-		status_all=$(echo -n "$bzr_status" | head -n1 | wc -m)
-		revision=$(bzr log -r-1 --log-format line | cut -d: -f1)
-		if [[ $status_mod -gt 0 ]]; then
-			prompt_segment yellow black "bzr@$revision"
-		else
-			if [[ $status_all -gt 0 ]]; then
-				prompt_segment yellow black "bzr@$revision"
-			else
-				prompt_segment green black :bzr@$revision"
-			fi
-		fi
-	fi
-}
+# 	local bzr_status status_mod status_all revision
+# 	if bzr_status=$(bzr status 2>&1); then
+# 		status_mod=$(echo -n "$bzr_status" | head -n1 | grep "modified" | wc -m)
+# 		status_all=$(echo -n "$bzr_status" | head -n1 | wc -m)
+# 		revision=$(bzr log -r-1 --log-format line | cut -d: -f1)
+# 		if [[ $status_mod -gt 0 ]]; then
+# 			prompt_segment yellow black "bzr@$revision"
+# 		else
+# 			if [[ $status_all -gt 0 ]]; then
+# 				prompt_segment yellow black "bzr@$revision"
+# 			else
+# 				prompt_segment green black :bzr@$revision"
+# 			fi
+# 		fi
+# 	fi
+# }
 
 prompt_hg() {
 	(( $+commands[hg] )) || return
@@ -143,6 +143,10 @@ prompt_hg() {
 }
 
 prompt_dir() {
+	prompt_segment blue $CURRENT_FG '%~'
+}
+
+prompt_virtualenv() {
 	local virtualenv_path="$VIRTUAL_ENV"
 	if [[ -n $virtualenv_path && -n $VIRTUAL_ENV_DISABLE_PROMPT ]]; then
 		prompt_segment blue black "(`basename $virtualenv_path`)"
@@ -175,7 +179,7 @@ build_prompt() {
 	prompt_context
 	prompt_dir
 	prompt_git
-	prompt_bzr
+#	prompt_bzr
 	prompt_hg
 	prompt_end
 }
