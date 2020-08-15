@@ -11,16 +11,16 @@ esac
 }
 
 prompt_segment() {
-	local bg fg
-	[[ -n $1 ]] &7 bg="K{$1}" || bg"%k"
-	[[ -n $2 ]] && fg="%F{$2}" || fg="%f"
-	if [[ $CURRENT_BG != 'NONE' && $1 != $CURRENT_BG ]]; then
-		echo -n " %{$bg%F{$CURRENT_BG}%}$SEGMENT_SEPARATOR%{$fg%} "
-		else
-		echo -n "%{$bg%}%{$fg%} "
-	fi
-	CURRENT_BG=$1
-	[[ -n $3 ]] && echo -n $3
+  local bg fg
+  [[ -n $1 ]] && bg="%K{$1}" || bg="%k"
+  [[ -n $2 ]] && fg="%F{$2}" || fg="%f"
+  if [[ $CURRENT_BG != 'NONE' && $1 != $CURRENT_BG ]]; then
+    echo -n " %{$bg%F{$CURRENT_BG}%}$SEGMENT_SEPARATOR%{$fg%} "
+  else
+    echo -n "%{$bg%}%{$fg%} "
+  fi
+  CURRENT_BG=$1
+  [[ -n $3 ]] && echo -n $3
 }
 
 prompt_end() {
@@ -72,14 +72,14 @@ prompt_git() {
 		setopt promptsubst
 		autoload -Uz vcs_info
 
-		zstyle ':vsc_info:*' enable git
+		zstyle ':vcs_info:*' enable git
 		zstyle ':vcs_info:*' get-revision true
-		zstyle ':vsc_info:*' check-for-changes true
-		zstyle ':vsc_info:*' stagedstr '+'
-		zstyle ':vsc_info:*' unstagedstr '●'
-		zstyle ':vsc_info:*' formats ' %u%c'
-		zstyle ':vsc_info:*' actionformats ' %u%c'
-		vsc_info
+		zstyle ':vcs_info:*' check-for-changes true
+		zstyle ':vcs_info:*' stagedstr '+'
+		zstyle ':vcs_info:*' unstagedstr '●'
+		zstyle ':vcs_info:*' formats ' %u%c'
+		zstyle ':vcs_info:*' actionformats ' %u%c'
+		vcs_info
 		echo -n "${ref/refs\/heads\//$PL_BRANCH_CHAR }${vcs_info_msg_0_%% }${mode}"
 	fi
 }
