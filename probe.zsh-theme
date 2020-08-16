@@ -1,189 +1,42 @@
-# THEME OWNED BY PROBE2K
+# sorin.zsh-theme
+# screenshot: https://i.imgur.com/aipDQ.png
 
-CURRENT_BG='NONE'
+if [[ "$TERM" != "dumb" ]] && [[ "$DISABLE_LS_COLORS" != "true" ]]; then
+  MODE_INDICATOR="%{$fg_bold[red]%}❮%{$reset_color%}%{$fg[red]%}❮❮%{$reset_color%}"
+  local return_status="%{$fg[red]%}%(?..⏎)%{$reset_color%}"
 
-case ${SOLARIZED_THEME:-dark} in
-	light) CURRENT_FG='white';;
-	*)	   CURRENT_GF='black';;
-esac
+  PROMPT='%{$fg[cyan]%}%~$(git_prompt_info) %(!.%{$fg_bold[red]%}#.%{$fg_bold[green]%}❯%{$fg_bold[cyan]%}❯%{$fg_bold[magenta]%}❯)%{$reset_color%} '
 
-() {
-	local LC_ALL="" LC_CTYPE="en_US.UTF-8"
-	SEGMENT_SEPARATOR=$'\u276f'
-}
+  ZSH_THEME_GIT_PROMPT_PREFIX=" %{$fg[blue]%}git%{$reset_color%}:%{$fg[red]%}"
+  ZSH_THEME_GIT_PROMPT_SUFFIX="%{$reset_color%}"
+  ZSH_THEME_GIT_PROMPT_DIRTY=""
+  ZSH_THEME_GIT_PROMPT_CLEAN=""
 
-prompt_segment() {
-  local bg fg
-  [[ -n $1 ]] && bg="%K{$1}" || bg="%k"
-  [[ -n $2 ]] && fg="%F{$2}" || fg="%f"
-  if [[ $CURRENT_BG != 'NONE' && $1 != $CURRENT_BG ]]; then
-    echo -n " %{$bg%F{$CURRENT_BG}%}$SEGMENT_SEPARATOR%{$fg%} "
-  else
-    echo -n "%{$bg%}%{$fg%} "
-  fi
-  CURRENT_BG=$1
-  [[ -n $3 ]] && echo -n $3
-}
+  RPROMPT='${return_status}$(git_prompt_status)%{$reset_color%}'
 
-prompt_end() {
-	if [[ -n $CURRENT_BG ]]; then
-		echo -n " %{%k%F{$CURRENT_BG}%}$SEGMENT_SEPARATOR"
-	else
-		echo -n "%{%k%}"
-	fi
-	echo -n "%{%f%}"
-	CURRENT_BG=''
-}
+  ZSH_THEME_GIT_PROMPT_ADDED="%{$fg[green]%} ✚"
+  ZSH_THEME_GIT_PROMPT_MODIFIED="%{$fg[blue]%} ✹"
+  ZSH_THEME_GIT_PROMPT_DELETED="%{$fg[red]%} ✖"
+  ZSH_THEME_GIT_PROMPT_RENAMED="%{$fg[magenta]%} ➜"
+  ZSH_THEME_GIT_PROMPT_UNMERGED="%{$fg[yellow]%} ═"
+  ZSH_THEME_GIT_PROMPT_UNTRACKED="%{$fg[cyan]%} ✭"
+else
+  MODE_INDICATOR="❮❮❮"
+  local return_status="%(?::⏎)"
 
-prompt_context() {
-	if [[ "$USER" != "$DEFAULT_USER" || -n "$SSH_CLIENT" ]]; then
-		prompt_segment black default "%(!.%{%F{yellow}%}.)%n@%m"
-	fi
-}
+  PROMPT='%c$(git_prompt_info) %(!.#.❯) '
 
-prompt_git() {
-	(( $+commands[git] )) || return
-	if [[ "$(git config --get oh-my-zsh.hide-status 2>/dev/null)" = 1 ]]; then
-		return
-	fi
-	local PL_BRANCH_CHAR
-	() {
-		local LC_ALL="" LC_CTYPE="en_US.UTF-8"
-		PL_BRANCH_CHAR=$'\ue0a0'         # 
-	}
-	local ref dirty mode repo_path
+  ZSH_THEME_GIT_PROMPT_PREFIX=" git:"
+  ZSH_THEME_GIT_PROMPT_SUFFIX=""
+  ZSH_THEME_GIT_PROMPT_DIRTY=""
+  ZSH_THEME_GIT_PROMPT_CLEAN=""
 
-	if [[ "$(git rev-parse --is-inside-work-tree 2>/dev/null)" = "true" ]]; then
-		repo_path=$(git rev-parse --git-dir 2>/dev/null)
-		dirty=$(parse_git_dirty)
-		ref=$(git symbolic-ref HEAD 2>/dev/null) || ref="➦ $(git rev-parse --short HEAD 2> /dev/null)"
-		if [[ -n $dirty ]]; then
-			prompt_segment yellow black
-		else
-			prompt_segment green $CURRENT_FG
-		fi
+  RPROMPT='${return_status}$(git_prompt_status)'
 
-		if [[ -e "${repo_path}/BISECT_LOG" ]]; then
-			mode=" <B>"
-		elif [[ -e "${repo_path}/MERGE_HEAD" ]]; then
-			mode=" >M<"
-		elif [[ -e "${repo_path}/rebase" || -e "${repo_path}/rebase-apply" || -e "${repo_path}/rebase-merge" || -e "${repo_path}/../.dotest" ]]; then
-			mode=" >R>"
-		fi
-
-		setopt promptsubst
-		autoload -Uz vcs_info
-
-		zstyle ':vcs_info:*' enable git
-		zstyle ':vcs_info:*' get-revision true
-		zstyle ':vcs_info:*' check-for-changes true
-		zstyle ':vcs_info:*' stagedstr '+'
-		zstyle ':vcs_info:*' unstagedstr '●'
-		zstyle ':vcs_info:*' formats ' %u%c'
-		zstyle ':vcs_info:*' actionformats ' %u%c'
-		vcs_info
-		echo -n "${ref/refs\/heads\//$PL_BRANCH_CHAR }${vcs_info_msg_0_%% }${mode}"
-	fi
-}
-
-# prompt_bzr() {
-# 	(( $+commands[bzr] )) || return
-# 	local dir="$PWD"
-# 	while [[ ! -d "$dir/.bzr" ]]; do
-# 		[[ "$dir" = "/" ]] && return
-# 		dir="${dir:h}"
-# 	done
-
-# 	local bzr_status status_mod status_all revision
-# 	if bzr_status=$(bzr status 2>&1); then
-# 		status_mod=$(echo -n "$bzr_status" | head -n1 | grep "modified" | wc -m)
-# 		status_all=$(echo -n "$bzr_status" | head -n1 | wc -m)
-# 		revision=$(bzr log -r-1 --log-format line | cut -d: -f1)
-# 		if [[ $status_mod -gt 0 ]]; then
-# 			prompt_segment yellow black "bzr@$revision"
-# 		else
-# 			if [[ $status_all -gt 0 ]]; then
-# 				prompt_segment yellow black "bzr@$revision"
-# 			else
-# 				prompt_segment green black :bzr@$revision"
-# 			fi
-# 		fi
-# 	fi
-# }
-
-prompt_hg() {
-	(( $+commands[hg] )) || return
-	local rev st branch
-	if $(hg id >/dev/null 2>&1); then
-		if $(hg prompt >/dev/null 2>&1); then
-			if [[ $(hg prompt "{status|unknown}") = "?" ]]; then
-				prompt_segment red white
-				st='±'
-			elif [[ -n $(hg prompt "{status|modified}") ]]; then
-				prompt_segment yellow black
-				st='±'
-			else
-				prompt_segment green $CURRENT_FG
-			fi
-			echo -n $(hg prompt "☿ {rev}@{branch}") $st
-		else
-			st=""
-			rev=$(hg id -n 2>/dev/null | sed 's/[^-0-9]//g')
-			branch=$(hg id -b 2>/dev/null)
-			if `hg st | grep -q "^\?"`; then
-				prompt_segment red black
-				st='±'
-			elif `hg st | grep -q "^[MA]"`; then
-				prompt_segment yellow black
-				st='±'
-			else
-				prompt_segment green $CURRENT_FG
-			fi
-			echo -n "☿ $rev@$branch" $st
-		fi
-	fi
-}
-
-prompt_dir() {
-	prompt_segment blue $CURRENT_FG '%~'
-}
-
-prompt_virtualenv() {
-	local virtualenv_path="$VIRTUAL_ENV"
-	if [[ -n $virtualenv_path && -n $VIRTUAL_ENV_DISABLE_PROMPT ]]; then
-		prompt_segment blue black "(`basename $virtualenv_path`)"
-	fi
-}
-
-prompt_status() {
-	local -a symbols
-	
-	[[ $RETVAL -ne 0 ]] && symbols+="%{%F{red}%}✘"
-	[[ $UID -eq 0 ]] && symbols+="%{%F{yellow}%}⚡"
-	[[ $(jobs -l | wc -l) -gt 0 ]] && symbols+="%{%F{cyan}%}⚙"
-
-	[[ -n "$symbols" ]] && prompt_segment black default "$symbols"
-}
-
-prompt_aws() {
-	[[ -z "$AWS_PROFILE" ]] && return
-	case "$AWS_PROFILE" in
-		*-prod|*production*) prompt_segment red yellow  "AWS: $AWS_PROFILE" ;;
-		*) prompt_segment green black "AWS: $AWS_PROFILE" ;;
-	esac
-}
-
-build_prompt() {
-	RETVAL=$?
-	prompt_status
-	prompt_virtualenv
-	prompt_aws
-	prompt_context
-	prompt_dir
-	prompt_git
-#	prompt_bzr
-	prompt_hg
-	prompt_end
-}
-
-PROMPT='%{%f%b%k%}$(build_prompt) '
+  ZSH_THEME_GIT_PROMPT_ADDED=" ✚"
+  ZSH_THEME_GIT_PROMPT_MODIFIED=" ✹"
+  ZSH_THEME_GIT_PROMPT_DELETED=" ✖"
+  ZSH_THEME_GIT_PROMPT_RENAMED=" ➜"
+  ZSH_THEME_GIT_PROMPT_UNMERGED=" ═"
+  ZSH_THEME_GIT_PROMPT_UNTRACKED=" ✭"
+fi
