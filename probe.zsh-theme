@@ -1,4 +1,4 @@
-# new.zsh-theme
+# probe.zsh-theme
 
 PROMPT='%{$fg[cyan]%}%~$(git_prompt_info) %(!.%{$fg_bold[red]%}#.%{$fg_bold[cyan]%}❯%{$fg_bold[yellow]%}❯%{$fg_bold[green]%}❯)%{$reset_color%} '
 
